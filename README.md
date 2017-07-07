@@ -13,7 +13,7 @@
 #include <sstream>
 using namespace std;
 #define DEBUG 0
-#define printToScreen 1
+
 struct Field;
 vector <vector<Field> > maze;
 int height =35;
@@ -22,7 +22,12 @@ int startx, starty;
 int sleepTime= 0;
 int myx,myy, nrOfMazes;
 stack<Field> stck;
+std::ofstream ofs;
 enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
+
+void makeMove(int y, int x);//, int &myy, int &myx
+
+typedef decltype(bind(makeMove, int(), int())) makeMoveBind;
 
 void clearScreen(int x, int y)
 {
@@ -42,28 +47,32 @@ struct Field
 };
 
 
-void show(bool toScreen, bool toFile = false)
+void show(ostream& stream)
 {
-    std::stringstream name ;
-    name <<"test" <<nrOfMazes<< ".txt";
-    std::ofstream ofs (name.str(), std::ofstream::out);
     clearScreen(0,0);
-    if(toScreen) cout << "\n\n\n";
-
     for(int i =0;i<height;i++)
     {
         for(int j =0;j<width;j++)
         {
-            if(toFile) ofs<< maze[i][j].sign;
-            if(toScreen) cout << maze[i][j].sign;
+          stream<< maze[i][j].sign;
         }
-        if(toFile) ofs << "\n";
-        if(toScreen) cout << "\n";
+        stream << "\n";
     }
 
     Sleep(sleepTime);
-    ofs.close();
+
 }
+
+void printToFile()
+{
+    show(ofs);
+}
+void printToScreen()
+{
+    cout << "\n\n\n";
+    show(cout);
+}
+
 void fillMaze()
 {
     maze.clear();
@@ -132,6 +141,39 @@ vector <int> lookAround()
     return vct;
 }
 
+
+void makeMove(int y, int x)//, int &myy, int &myx
+{
+ if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
+    {
+        maze[myy][myx].sign = ' ';
+        maze[myy+y][myx+x].visited = true;
+        maze[myy+y][myx+x].sign = '*';
+        printToScreen();
+        maze[myy+y][myx+x].sign = ' ';
+        myy += (2*y);
+        myx += (2*x);
+        maze[myy][myx].visited = true;
+        maze[myy][myx].sign = '*';
+        stck.push( maze[myy][myx]);
+    }
+}
+
+vector <makeMoveBind> lookAround2()
+{
+    vector <makeMoveBind> vct;
+    if(!maze[myy][myx-1].wall  && !maze[myy][myx-2].visited )
+        vct.push_back(bind(makeMove, 0, -1) );
+    if(!maze[myy][myx+1].wall  && !maze[myy][myx+2].visited )
+       vct.push_back(bind(makeMove, 0, 1) );
+    if(!maze[myy-1][myx].wall  && !maze[myy-2][myx].visited)
+        vct.push_back(bind(makeMove, -1, 0) );
+    if(!maze[myy+1][myx].wall && !maze[myy+2][myx].visited )
+        vct.push_back(bind(makeMove, 1, 0) );
+    return vct;
+}
+
+
 int availableFields()
 {
     int ctr=0;
@@ -152,46 +194,12 @@ int availableFields()
     return ctr;
 }
 
-void makeMove(int y, int x)//, int &myy, int &myx
-{
- if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
-    {
-        maze[myy][myx].sign = ' ';
-        maze[myy+y][myx+x].visited = true;
-        maze[myy+y][myx+x].sign = '*';
-        show(printToScreen);
-        maze[myy+y][myx+x].sign = ' ';
-        myy += (2*y);
-        myx += (2*x);
-        maze[myy][myx].visited = true;
-        maze[myy][myx].sign = '*';
-        stck.push( maze[myy][myx]);
-    }
-}
-
 void chooseMove()
 {
-    vector<int> directions = lookAround();
+    vector<makeMoveBind> directions = lookAround2();
     int dir = rand()%directions.size() ;
-    dir = directions[dir];
-
-    switch(dir)
-   {
-                case LEFT:
-                    makeMove(0,-1);
-                    break;
-                case RIGHT:
-                    makeMove(0,1);
-                    break;
-                case UP:
-                    makeMove(-1,0);
-                    break;
-                case DOWN:
-                    makeMove(1,0);
-                    break;
-                default:
-                    if(DEBUG)cout <<"ERROR\n";
-                }
+    makeMoveBind go = directions[dir];
+    go();
 }
 
 template <typename T>
@@ -210,14 +218,19 @@ void goBack()
   myx= tmp.x;
   myy = tmp.y;
   maze[myy][myx].sign = '*';
-  show(printToScreen);
+  printToScreen();
 }
 int main()
 {
-    int a =5;
+    int a =10;
+
     srand( time( NULL ) );
     while(a--)
     {
+        std::stringstream name ;
+        name <<"test" <<nrOfMazes<< ".txt";
+        ofs.open(name.str());
+
         clearStack(stck);
         nrOfMazes++;
         fillMaze();
@@ -244,10 +257,12 @@ int main()
         }
         maze[starty][startx].sign = 'S';
         maze[myy][myx].sign = 'X';
-        show(printToScreen, 1);
-
+        printToScreen();
+        printToFile();
+        ofs.close();
 //getch();
 
     }
+
     return 0;
 }
