@@ -7,18 +7,28 @@
 #include <time.h>
 #include <functional>
 #include <unistd.h>
-//#include <windows.h>
+
 #include <fstream>
 #include <sstream>
+
+#ifdef _WIN32
+	#include <windows.h>
+#endif
 using namespace std;
 #define DEBUG 0
 #define printToScreen 1
+
+#ifdef _WIN32
+	int sleepTime= 10;
+#else
+	int sleepTime= 50000;
+#endif
 struct Field;
 vector <vector<Field> > maze;
 int height =35;
 int width =35;
 int startx, starty;
-int sleepTime= 50000;
+
 int myx,myy, nrOfMazes;
 stack<Field> stck;
 
@@ -26,7 +36,14 @@ enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 
 void clearScreen(int x, int y)
 {
+#ifdef _WIN32
+		static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    std::cout.flush();
+    COORD coord = { (SHORT)x, (SHORT)y };
+    SetConsoleCursorPosition(hOut, coord);
+#else
     cout << string( 100, '\n' );
+#endif
 }
 
 struct Field
