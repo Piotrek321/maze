@@ -17,8 +17,8 @@ using namespace std;
 
 struct Field;
 vector <vector<Field> > maze;
-int height =11;
-int width =11;
+int height =15;
+int width =15;
 int startx, starty;
 #ifdef _WIN32
 	int sleepTime= 10;
@@ -277,21 +277,21 @@ bool isDeadEnd(int y, int x)
 return false;
 
 }
-int findCrossroads()
+int createCrossroads()
 {    
 int numberOfCrossroads =0;
 	for(int i =0;i<height;i++)
   {
 	  for(int j =0;j<width;j++)
     {
-			if(maze[i][j].sign != '#' && maze[i][j].sign != 'S' && maze[i][j].sign != 'X')
+			if(maze[i][j].sign == ' ')
 			{			
-			 	if(maze[i-1][j].sign != '@' && maze[i-1][j].sign != maze[i+1][j].sign )
+			 	if(maze[i-1][j].sign != '@' && maze[i-1][j].sign != 'S' && maze[i-1][j].sign != 'X' && maze[i+1][j].sign != '@'&& maze[i+1][j].sign != 'S' && maze[i-1][j].sign != maze[i+1][j].sign )
 				{
 					maze[i][j].sign = '@';
 					numberOfCrossroads++;
 				}
-				else if(maze[i][j-1].sign != '@' && maze[i][j-1].sign != maze[i][j+1].sign )
+				else if(maze[i][j-1].sign != '@' && maze[i][j-1].sign != 'S' && maze[i][j-1].sign != 'X' && maze[i][j+1].sign != '@' && maze[i][j+1].sign != 'S' && maze[i][j-1].sign != maze[i][j+1].sign )
 				{
 					maze[i][j].sign = '@';
 					numberOfCrossroads++;
@@ -308,8 +308,9 @@ int numberOfCrossroads =0;
     }
 
   }	
-	//show(cout);
-	//getchar();
+	show(cout);
+	
+getchar();
 return numberOfCrossroads;
 }
 vector<Field> getOnePath(int y, int x)
@@ -335,12 +336,21 @@ vector<Field> getOnePath(int y, int x)
 	return fd;
 }
 
+bool isCrossroad(int y,int x)
+{
+	if(maze[y][x].sign == '@' || maze[y][x].sign == 'S' || maze[y][x].sign == 'X')
+		return true;
+return false;
+}
+
+void createGraph(int nrOfCrossroads);
+
 
 int main()
 {
-    int a =10;
+    int a =1;
 //getMazeFromFile("test1.txt");
-    srand( time( NULL ) );
+    //srand( time( NULL ) );
     while(a--)
     {
         std::stringstream name ;
@@ -357,7 +367,7 @@ int main()
             {
                 if(availableFields())
                 {
-                    if(DEBUG) cout <<"Myx: " << myx << " myy: " << myy  <<"\n";
+                    //if(DEBUG) cout <<"Myx: " << myx << " myy: " << myy  <<"\n";
                     goBack();
                     continue;
                 }
@@ -376,27 +386,234 @@ int main()
         printToScreen();
         printToFile();
         ofs.close();
-				int nrOfCrossroads = findCrossroads();
+				int nrOfCrossroads = createCrossroads() +2;
 				show(cout);
+		
 
-
-
-				int ** graph;
-				graph = new int * [nrOfCrossroads];
-				for(int i = 0; i <nrOfCrossroads; ++i)
-				{
-					graph[i] = new int[nrOfCrossroads];
-				}
-				
-				while(1)
-				{
-					vector<Field> fd = getOnePath(starty,startx);
-					cout <<"Fd: " << fd.size() << "\n";
-					if(starty == fd[0].y) cout <<"y==y\n";
-					if(startx == fd[0].x) cout <<"x==x\n";
-					getchar();
-				}
+			
+			createGraph(nrOfCrossroads);
+			getchar();
+			
     }
 
     return 0;
 }
+
+bool isReachable(int starty, int startx, int destinationy, int destinationx)
+{
+	if(DEBUG)cout << "isReachable starty: " << starty << " startx: " << startx << " destinationy: " <<destinationy << " destinationx: " << destinationx <<"\n";
+	if(starty - destinationy == 0) //sameRow
+	{
+		for(int i=startx+1; i <destinationx+1; i++)
+		{
+			if(DEBUG)cout <<"isReachable the same row\n";
+			if(isCrossroad(starty, i)&& i == destinationx) return true;
+			if(maze[starty][i].sign =='#') return false;
+		} 
+	}
+
+	if(startx - destinationx == 0) //sameColumn
+	{
+		for(int i=starty+1; i <destinationy+1; i++)
+		{
+			if(DEBUG)cout <<"isReachable the same column\n";
+			if(isCrossroad(i, startx) && i == destinationy ) return true;
+			if(maze[i][startx].sign =='#') return false;
+		} 
+	}
+
+
+return false;
+}
+
+void createGraph(int nrOfCrossroads)
+{
+//Prepare graph
+	int ** graph;
+	graph = new int * [nrOfCrossroads];
+	for(int i = 0; i <nrOfCrossroads; ++i)
+	{
+		graph[i] = new int[nrOfCrossroads];
+	}
+
+	for(int j = 0; j <nrOfCrossroads; ++j)
+	{				
+		for(int i = 0; i <nrOfCrossroads; ++i)
+		{
+			graph[j][i] = 0;
+		}
+	}
+
+//Collect all crossroads
+	vector<Field*> crossroads;
+	for(int i =1;i<height;i++)
+	{
+		for(int j =1;j<width;j++)
+		{
+			if(isCrossroad(i,j))
+			{
+				crossroads.push_back(&maze[i][j]);
+			}
+		}
+	}
+	if(nrOfCrossroads != crossroads.size()) cout <<"ERROR!!!\n";
+	//Find two nearest crossroads in the same row 
+	for(int j =0; j <nrOfCrossroads-1; j++)
+	{
+		for(int i =j+1; i <nrOfCrossroads; i++)
+		{
+			if(crossroads[j]->y == crossroads[i]->y)
+			{
+				//isReachable
+				if(DEBUG)cout <<"the same row\n";	
+				if(DEBUG)cout <<"crossroads[j].y: " << crossroads[j]->y << 	" crossroads[j].x: "<< crossroads[j]->x << "\n";
+				if(DEBUG)cout <<"crossroads[i].y: " << crossroads[i]->y << 	" crossroads[i].x: "<< crossroads[i]->x << "\n";
+				if(DEBUG)cout << "isReachable: " << isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x) <<"\n";
+				if(isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x))
+				{
+					graph[i][j] = crossroads[i]->x - crossroads[j]->x;
+					graph[j][i] = crossroads[i]->x - crossroads[j]->x;
+				}
+			}
+			if(crossroads[j]->x == crossroads[i]->x)
+			{
+				//isReachable
+				if(DEBUG)cout <<"the same column\n";	
+				if(DEBUG)cout <<"crossroads[j].y: " << crossroads[j]->y << 	" crossroads[j].x: "<< crossroads[j]->x << "\n";
+				if(DEBUG)cout <<"crossroads[i].y: " << crossroads[i]->y << 	" crossroads[i].x: "<< crossroads[i]->x << "\n";
+				if(DEBUG)cout << "isReachable: " << isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x) <<"\n";
+				if(isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x))
+				{
+					graph[i][j] = crossroads[i]->y - crossroads[j]->y;
+					graph[j][i] = crossroads[i]->y - crossroads[j]->y;
+				}
+			}
+		}
+	}
+
+	for(int j = 0; j <nrOfCrossroads; j++)
+	{			
+		for(int i = 0; i <nrOfCrossroads; i++)
+		{
+			cout << graph[j][i] << " ";
+		}cout <<"\n";
+	}
+}
+/*
+void createGraph(int nrOfCrossroads)
+{
+cout << "nrOfCrossroads: " << nrOfCrossroads << "\n";
+	int ** graph;
+	graph = new int * [nrOfCrossroads];
+	for(int i = 0; i <nrOfCrossroads; ++i)
+	{
+		graph[i] = new int[nrOfCrossroads];
+	}
+				
+
+	for(int j = 0; j <nrOfCrossroads; ++j)
+	{				
+		for(int i = 0; i <nrOfCrossroads; ++i)
+		{
+			graph[j][i] = 0;
+		}
+	}
+
+
+	Field * tab;
+	tab = new Field [nrOfCrossroads];
+	int crs=0;
+	int ctr =0;
+
+	int distance=-1;
+	bool found =false;
+
+	for(int i =0;i<height;i++)//TODO 1
+	{
+		for(int j =0;j<width;j++)//TODO 1
+		{
+			int z =1;
+				bool petla =true;
+				int distance2=0;
+			if(maze[i][j].sign == '@' || maze[i][j].sign == 'X' || maze[i][j].sign == 'S')
+			{ctr++;
+				cout <<"First if.maze[i][j].sign: " << maze[i][j].sign << " i: "<<i << " j: " << j<< " crs: " << crs <<"\n";
+				//CHeckDOwn
+				  tab[crs] = maze[i][j];
+					while(petla)
+					{cout <<"Petla\n";
+						distance2++;
+						if(maze[i-z][j].sign == '#') 
+						{							cout << "i-z: " << i-z << " j: " << j << " sign: " << "#" <<"\n";
+							//cout <<"while if break\n";
+							petla = false;
+						}else if(maze[i-z][j].sign == '@' || maze[i-z][j].sign == 'X' || maze[i-z][j].sign == 'S')
+						{cout << "while else if crs: " << crs << " distance2: " << distance2 << "\n";
+							//Find crs for this corssroad
+							cout << "i-z: " << i-z << " j: " << j << " \n";
+							int iter = 0;
+							for(int k =0; k <nrOfCrossroads; k++)
+							{
+								if(tab[k].x == j && tab[k].y == (i-z))
+								{iter =k;
+									cout << "For if i-z: " << i-z << " j: " << j << " iter: "<< iter << " \n";
+								}
+							}
+							cout <<"ITER: " <<iter << " crs: " << crs << "\n";
+							graph[crs][iter] = distance2;
+							distance2 = 0;
+								for(int j = 0; j <nrOfCrossroads; j++)
+								{	//cout <<"J:" << j << " ";			
+									for(int i = 0; i <nrOfCrossroads; i++)
+									{
+										cout << graph[j][i] << " ";
+									}cout <<"\n";
+								}
+								getchar();
+							petla = false;
+						}else if(maze[i-z][j].sign == ' ')
+						{
+							cout << "i-z: " << i-z << " j: " << j << " sign: " << " " <<"\n";
+					
+						}
+						z++;
+					}
+				
+				cout <<"Po petli\n\n";
+				if(found)	
+				{cout <<"Add to graph. Crs: " << crs << " distance: " << distance << "\n";
+					graph[crs-1][crs] = distance;
+					distance = 0;
+					found =false;
+					
+				}else
+				{//cout <<"found =true\n";
+					found =true;
+				}
+				
+				crs++;
+				
+			}
+			else if(maze[i][j].sign == '#')
+			{cout <<"'#' found =false;\n";
+				found =false;
+				distance = 0;
+			}else if(maze[i][j].sign == ' ')
+					distance++;
+		}
+	}
+	for(int j = 0; j <nrOfCrossroads; j++)
+	{	//cout <<"J:" << j << " ";			
+		for(int i = 0; i <nrOfCrossroads; i++)
+		{
+			cout << graph[j][i] << " ";
+		}cout <<"\n";
+	}
+					
+	for(int i = 0; i <nrOfCrossroads; ++i)
+	{
+		delete graph[i];
+	}
+	delete graph;
+}*/
+
