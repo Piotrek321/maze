@@ -7,32 +7,32 @@
 #include <time.h>
 #include <functional>
 #include <unistd.h>
-
-#include <fstream>
-#include <sstream>
-
 #ifdef _WIN32
 	#include <windows.h>
 #endif
+#include <fstream>
+#include <sstream>
 using namespace std;
 #define DEBUG 0
-#define printToScreen 1
 
-#ifdef _WIN32
-	int sleepTime= 10;
-#else
-	int sleepTime= 50000;
-#endif
 struct Field;
 vector <vector<Field> > maze;
 int height =35;
 int width =35;
 int startx, starty;
-
+#ifdef _WIN32
+	int sleepTime= 10;
+#else
+	int sleepTime= 50000;
+#endif
 int myx,myy, nrOfMazes;
 stack<Field> stck;
-
+std::ofstream ofs;
 enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
+
+void makeMove(int y, int x);//, int &myy, int &myx
+
+typedef decltype(bind(makeMove, int(), int())) makeMoveBind;
 
 void clearScreen(int x, int y)
 {
@@ -56,28 +56,82 @@ struct Field
 };
 
 
-void show(bool toScreen, bool toFile = false)
+void show(ostream& stream)
 {
-    std::stringstream name ;
-    name <<"test" <<nrOfMazes<< ".txt";
-    std::ofstream ofs (name.str(), std::ofstream::out);
     clearScreen(0,0);
-    if(toScreen) cout << "\n\n\n";
-
     for(int i =0;i<height;i++)
     {
         for(int j =0;j<width;j++)
         {
-            if(toFile) ofs<< maze[i][j].sign;
-            if(toScreen) cout << maze[i][j].sign;
+          stream<< maze[i][j].sign;
         }
-        if(toFile) ofs << "\n";
-        if(toScreen) cout << "\n";
+        stream << "\n";
     }
+#ifdef _WIN32
+    Sleep(sleepTime);
+#else
+		usleep(sleepTime);
+#endif
 
-    usleep(sleepTime);
-    ofs.close();
 }
+
+void getMazeFromFile(std::string fileName)
+{
+	std::ifstream ifs(fileName);
+  std::string line;
+	int x=0, y=0;
+	while(getline(ifs,line))
+	{
+			vector<Field> ve;
+			std::cout << line <<"\n";
+			for(auto &_field : line)
+			{
+				Field field;
+				field.x = x;
+				field.y = y;
+				std::cout <<"field: " << _field << "\n";
+				switch(_field)
+				{
+					case '#':
+						field.sign= '#';
+						field.wall = true; 
+						break;
+					case ' ':
+						field.sign= ' ';
+						field.wall = false;  
+						break; 
+					case 'S':
+						field.sign= 'S';
+						field.wall = false; 
+						startx = x;
+						starty = y; 
+						break; 
+					case 'X':
+						field.sign= 'X';
+						field.wall = false; 
+						break; 
+				}
+				ve.push_back(field);
+				x++;
+			}
+ 		maze.push_back(ve);
+	x=0;
+	y++;
+	}
+
+show(cout);
+}
+
+void printToFile()
+{
+    show(ofs);
+}
+void printToScreen()
+{
+    cout << "\n\n\n";
+    show(cout);
+}
+
 void fillMaze()
 {
     maze.clear();
@@ -131,20 +185,37 @@ bool stuck()
     return 0;
 }
 
-
-vector <int> lookAround()
+void makeMove(int y, int x)//, int &myy, int &myx
 {
-    vector <int> vct;
+ if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
+    {
+        maze[myy][myx].sign = ' ';
+        maze[myy+y][myx+x].visited = true;
+        maze[myy+y][myx+x].sign = '*';
+        printToScreen();
+        maze[myy+y][myx+x].sign = ' ';
+        myy += (2*y);
+        myx += (2*x);
+        maze[myy][myx].visited = true;
+        maze[myy][myx].sign = '*';
+        stck.push( maze[myy][myx]);
+    }
+}
+
+vector <makeMoveBind> lookAround()
+{
+    vector <makeMoveBind> vct;
     if(!maze[myy][myx-1].wall  && !maze[myy][myx-2].visited )
-        vct.push_back(LEFT);
+        vct.push_back(bind(makeMove, 0, -1) );
     if(!maze[myy][myx+1].wall  && !maze[myy][myx+2].visited )
-        vct.push_back(RIGHT);
+       vct.push_back(bind(makeMove, 0, 1) );
     if(!maze[myy-1][myx].wall  && !maze[myy-2][myx].visited)
-        vct.push_back(UP);
+        vct.push_back(bind(makeMove, -1, 0) );
     if(!maze[myy+1][myx].wall && !maze[myy+2][myx].visited )
-        vct.push_back(DOWN);
+        vct.push_back(bind(makeMove, 1, 0) );
     return vct;
 }
+
 
 int availableFields()
 {
@@ -166,55 +237,21 @@ int availableFields()
     return ctr;
 }
 
-void makeMove(int y, int x)//, int &myy, int &myx
-{
- if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
-    {
-        maze[myy][myx].sign = ' ';
-        maze[myy+y][myx+x].visited = true;
-        maze[myy+y][myx+x].sign = '*';
-        show(printToScreen);
-        maze[myy+y][myx+x].sign = ' ';
-        myy += (2*y);
-        myx += (2*x);
-        maze[myy][myx].visited = true;
-        maze[myy][myx].sign = '*';
-        stck.push( maze[myy][myx]);
-    }
-}
-
 void chooseMove()
 {
-    vector<int> directions = lookAround();
+    vector<makeMoveBind> directions = lookAround();
     int dir = rand()%directions.size() ;
-    dir = directions[dir];
-
-    switch(dir)
-   {
-                case LEFT:
-                    makeMove(0,-1);
-                    break;
-                case RIGHT:
-                    makeMove(0,1);
-                    break;
-                case UP:
-                    makeMove(-1,0);
-                    break;
-                case DOWN:
-                    makeMove(1,0);
-                    break;
-                default:
-                    if(DEBUG)cout <<"ERROR\n";
-                }
+    makeMoveBind go = directions[dir];
+    go();
 }
 
 template <typename T>
 void clearStack(stack<T> _stck)
 {
-    while (!_stck.empty())
-    {
-        _stck.pop();
-    }
+	while (!_stck.empty())
+  {
+	   _stck.pop();
+  }
 }
 void goBack()
 {
@@ -224,14 +261,19 @@ void goBack()
   myx= tmp.x;
   myy = tmp.y;
   maze[myy][myx].sign = '*';
-  show(printToScreen);
+  printToScreen();
 }
 int main()
 {
-    int a =5;
+    int a =10;
+//getMazeFromFile("test1.txt");
     srand( time( NULL ) );
     while(a--)
     {
+        std::stringstream name ;
+        name <<"test" <<nrOfMazes<< ".txt";
+        ofs.open(name.str());
+
         clearStack(stck);
         nrOfMazes++;
         fillMaze();
@@ -258,11 +300,12 @@ int main()
         }
         maze[starty][startx].sign = 'S';
         maze[myy][myx].sign = 'X';
-        show(printToScreen, 1);
-
+        printToScreen();
+        printToFile();
+        ofs.close();
 //getch();
 
     }
+
     return 0;
 }
-

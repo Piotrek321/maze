@@ -63,6 +63,76 @@ void show(ostream& stream)
 
 }
 
+void getMazeFromFile(std::string fileName)
+{
+	std::ifstream ifs(fileName);
+  std::string line;
+	maze.clear();
+int x=0, y=0;
+	while(getline(ifs,line))
+	{
+			vector<Field> ve;
+			std::cout << line <<"\n";
+			for(auto &_field : line)
+			{
+				std::cout <<"field: " << _field << "\n";
+				if(_field == '#')
+				{
+				  
+					Field field;
+					field.sign= '#';
+					field.x = x;
+					field.y = y;
+					field.wall = true;   
+					ve.push_back(field);
+				}
+				if(_field == ' ')
+				{
+				  
+					Field field;
+					field.sign= ' ';
+					field.x = x;
+					field.y = y;
+					field.wall = false;   
+					ve.push_back(field);
+				}
+				if(_field == 'S')
+				{
+				  
+					Field field;
+					field.sign= 'S';
+					field.x = x;
+					field.y = y;
+					field.wall = false; 
+					startx = x;
+					starty = y;
+					ve.push_back(field);
+				}
+				if(_field == 'X')
+				{
+				  
+					Field field;
+					field.sign= 'X';
+					field.x = x;
+					field.y = y;
+					field.wall = false; 
+					startx = x;
+					starty = y;
+					ve.push_back(field);
+				}
+				x++;
+			}
+ 		maze.push_back(ve);
+	x=0;
+	y++;
+	}
+std::cout<<"SHOW\n";
+getchar();
+show(1);
+getchar();
+
+}
+
 void printToFile()
 {
     show(ofs);
@@ -223,7 +293,8 @@ void goBack()
 int main()
 {
     int a =10;
-
+getMazeFromFile("test1.txt");
+getchar();
     srand( time( NULL ) );
     while(a--)
     {
