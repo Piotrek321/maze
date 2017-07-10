@@ -17,13 +17,13 @@ using namespace std;
 
 struct Field;
 vector <vector<Field> > maze;
-int height =35;
-int width =35;
+int height =11;
+int width =11;
 int startx, starty;
 #ifdef _WIN32
 	int sleepTime= 10;
 #else
-	int sleepTime= 1;
+	int sleepTime= 50000;
 #endif
 int myx,myy, nrOfMazes;
 stack<Field> stck;
@@ -42,7 +42,7 @@ void clearScreen(int x, int y)
     COORD coord = { (SHORT)x, (SHORT)y };
     SetConsoleCursorPosition(hOut, coord);
 #else
-    //cout << string( 50, '\n' );
+    cout << string( 50, '\n' );
 #endif
 }
 
@@ -277,8 +277,9 @@ bool isDeadEnd(int y, int x)
 return false;
 
 }
-void findCrossroads()
+int findCrossroads()
 {    
+int numberOfCrossroads =0;
 	for(int i =0;i<height;i++)
   {
 	  for(int j =0;j<width;j++)
@@ -288,14 +289,17 @@ void findCrossroads()
 			 	if(maze[i-1][j].sign != '@' && maze[i-1][j].sign != maze[i+1][j].sign )
 				{
 					maze[i][j].sign = '@';
+					numberOfCrossroads++;
 				}
 				else if(maze[i][j-1].sign != '@' && maze[i][j-1].sign != maze[i][j+1].sign )
 				{
 					maze[i][j].sign = '@';
+					numberOfCrossroads++;
 				}
 				else if(isDeadEnd(i,j))
 				{
-					 maze[i][j].sign = '@';
+					maze[i][j].sign = '@';
+					numberOfCrossroads++;
 				}
 				
 				//getchar();
@@ -306,15 +310,31 @@ void findCrossroads()
   }	
 	//show(cout);
 	//getchar();
+return numberOfCrossroads;
+}
+vector<Field> getOnePath(int y, int x)
+{
+	vector<Field> fd;
+  if(maze[y][x-1].sign != '#')
+	{
+		fd.push_back(maze[y][x-1]);
+	}
+  if(maze[y][x+1].sign != '#')
+	{
+		fd.push_back(maze[y][x+1]);
+	}
+  if(maze[y-1][x].sign != '#')
+	{
+		fd.push_back(maze[y-1][x]);
+	}
+  if(maze[y+1][x].sign != '#')
+	{
+		fd.push_back(maze[y+1][x]);
+	}	
+
+	return fd;
 }
 
-struct fieldsGraph
-{
-  Field north = nullptr;
-  Field south = nullptr;
-  Field west = nullptr;
-  Field east = nullptr;
-}
 
 int main()
 {
@@ -356,10 +376,26 @@ int main()
         printToScreen();
         printToFile();
         ofs.close();
-				findCrossroads();
+				int nrOfCrossroads = findCrossroads();
 				show(cout);
-				getchar();
 
+
+
+				int ** graph;
+				graph = new int * [nrOfCrossroads];
+				for(int i = 0; i <nrOfCrossroads; ++i)
+				{
+					graph[i] = new int[nrOfCrossroads];
+				}
+				
+				while(1)
+				{
+					vector<Field> fd = getOnePath(starty,startx);
+					cout <<"Fd: " << fd.size() << "\n";
+					if(starty == fd[0].y) cout <<"y==y\n";
+					if(startx == fd[0].x) cout <<"x==x\n";
+					getchar();
+				}
     }
 
     return 0;
