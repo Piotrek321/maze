@@ -23,7 +23,7 @@ int startx, starty;
 #ifdef _WIN32
 	int sleepTime= 10;
 #else
-	int sleepTime= 50000;
+	int sleepTime= 1;
 #endif
 int myx,myy, nrOfMazes;
 stack<Field> stck;
@@ -42,7 +42,7 @@ void clearScreen(int x, int y)
     COORD coord = { (SHORT)x, (SHORT)y };
     SetConsoleCursorPosition(hOut, coord);
 #else
-    cout << string( 100, '\n' );
+    //cout << string( 50, '\n' );
 #endif
 }
 
@@ -263,6 +263,59 @@ void goBack()
   maze[myy][myx].sign = '*';
   printToScreen();
 }
+bool isDeadEnd(int y, int x)
+{
+	if(maze[y][x].sign != '#' && maze[y][x].sign != 'S' && maze[y][x].sign != 'X')
+	{
+		int ctr =0;
+		if(maze[y-1][x].sign == '#')ctr++;
+		if(maze[y][x-1].sign == '#')ctr++;
+		if(maze[y+1][x].sign == '#')ctr++;
+		if(maze[y][x+1].sign == '#')ctr++;
+		if(ctr>=3) 		return true;
+	}
+return false;
+
+}
+void findCrossroads()
+{    
+	for(int i =0;i<height;i++)
+  {
+	  for(int j =0;j<width;j++)
+    {
+			if(maze[i][j].sign != '#' && maze[i][j].sign != 'S' && maze[i][j].sign != 'X')
+			{			
+			 	if(maze[i-1][j].sign != '@' && maze[i-1][j].sign != maze[i+1][j].sign )
+				{
+					maze[i][j].sign = '@';
+				}
+				else if(maze[i][j-1].sign != '@' && maze[i][j-1].sign != maze[i][j+1].sign )
+				{
+					maze[i][j].sign = '@';
+				}
+				else if(isDeadEnd(i,j))
+				{
+					 maze[i][j].sign = '@';
+				}
+				
+				//getchar();
+			
+			}
+    }
+
+  }	
+	//show(cout);
+	//getchar();
+}
+
+struct fieldsGraph
+{
+  Field north = nullptr;
+  Field south = nullptr;
+  Field west = nullptr;
+  Field east = nullptr;
+}
+
 int main()
 {
     int a =10;
@@ -303,7 +356,9 @@ int main()
         printToScreen();
         printToFile();
         ofs.close();
-//getch();
+				findCrossroads();
+				show(cout);
+				getchar();
 
     }
 
