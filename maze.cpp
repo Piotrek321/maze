@@ -17,21 +17,14 @@ using namespace std;
 #define DEBUG 0
 
 struct Field;
-vector <vector<Field> > maze;
-int height =15;
-int width =15;
-int startx, starty;
+
 #ifdef _WIN32
 	int sleepTime= 10;
 #else
 	int sleepTime= 50000;
 #endif
-int myx,myy, nrOfMazes;
-stack<Field> stck;
-std::ofstream ofs;
-enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 
-void Maze::makeMove(int y, int x);//, int &myy, int &myx
+//void Maze::makeMove(int y, int x);//, int &myy, int &myx
 
 //typedef decltype(bind(makeMove, int(), int())) makeMoveBind;
 
@@ -178,36 +171,37 @@ bool Maze::stuck()
     return 0;
 }
 
-void Maze::makeMove(int y, int x)//, int &myy, int &myx
+void Maze::makeMove(Maze &thisMaze, int y, int x)
 {
- if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
+ if(!thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].wall && !thisMaze.maze[thisMaze.myy+(2*y)][thisMaze.myx+(2*x)].wall && !thisMaze.maze[thisMaze.myy+(2*y)][thisMaze.myx+(2*x)].visited  )
     {
-        maze[myy][myx].sign = ' ';
-        maze[myy+y][myx+x].visited = true;
-        maze[myy+y][myx+x].sign = '*';
-        printToScreen();
-        maze[myy+y][myx+x].sign = ' ';
-        myy += (2*y);
-        myx += (2*x);
-        maze[myy][myx].visited = true;
-        maze[myy][myx].sign = '*';
-        stck.push( maze[myy][myx]);
+        thisMaze.maze[thisMaze.myy][thisMaze.myx].sign = ' ';
+        thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].visited = true;
+        thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].sign = '*';
+        thisMaze.printToScreen();
+        thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].sign = ' ';
+        thisMaze.myy += (2*y);
+        thisMaze.myx += (2*x);
+        thisMaze.maze[thisMaze.myy][thisMaze.myx].visited = true;
+        thisMaze.maze[thisMaze.myy][thisMaze.myx].sign = '*';
+        thisMaze.stck.push( thisMaze.maze[thisMaze.myy][thisMaze.myx]);
     }
 }
 
-/*vector <makeMoveBind> Maze::lookAround()
+vector <function<void(Maze&)>> Maze::lookAround()
 {
-    vector <makeMoveBind> vct;
+    vector <function<void(Maze&)>> vct;
     if(!maze[myy][myx-1].wall  && !maze[myy][myx-2].visited )
-        vct.push_back(bind(makeMove, 0, -1) );
+        vct.push_back(bind( Maze::makeMove, placeholders::_1, 0, -1) );
     if(!maze[myy][myx+1].wall  && !maze[myy][myx+2].visited )
-       vct.push_back(bind(makeMove, 0, 1) );
+       vct.push_back(bind( Maze::makeMove, placeholders::_1, 0, 1) );
     if(!maze[myy-1][myx].wall  && !maze[myy-2][myx].visited)
-        vct.push_back(bind(makeMove, -1, 0) );
+        vct.push_back(bind( Maze::makeMove, placeholders::_1, -1, 0) );
     if(!maze[myy+1][myx].wall && !maze[myy+2][myx].visited )
-        vct.push_back(bind(makeMove, 1, 0) );
+        vct.push_back(bind( Maze::makeMove, placeholders::_1, 1, 0) );
+
     return vct;
-}*/
+}
 
 
 int Maze::availableFields()
@@ -232,14 +226,14 @@ int Maze::availableFields()
 
 void Maze::chooseMove()
 {
-   /* vector<makeMoveBind> directions = lookAround();
+    vector<function<void(Maze&)>> directions = lookAround();
     int dir = rand()%directions.size() ;
-    makeMoveBind go = directions[dir];
-    go();*/
+    function<void(Maze&)> go = directions[dir];
+    go(*this);
 }
 
-template <typename T>
-void Maze::clearStack(stack<T> _stck)
+//template <typename T>
+void Maze::clearStack(stack<Field> _stck)
 {
 	while (!_stck.empty())
   {
@@ -304,9 +298,9 @@ int numberOfCrossroads =0;
 	show(cout);
 	
 getchar();
-return Maze::numberOfCrossroads;
+return numberOfCrossroads;
 }
-vector<Field> getOnePath(int y, int x)
+vector<Field> Maze::getOnePath(int y, int x)
 {
 	vector<Field> fd;
   if(maze[y][x-1].sign != '#')
@@ -335,10 +329,6 @@ bool Maze::isCrossroad(int y,int x)
 		return true;
 return false;
 }
-
-void createGraph(int nrOfCrossroads);
-
-
 
 bool Maze::isReachable(int starty, int startx, int destinationy, int destinationx)
 {

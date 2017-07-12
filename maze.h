@@ -26,8 +26,8 @@ struct Field
 enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 class Maze
 {
-
-	void makeMove(int y, int x);//, int &myy, int &myx
+public:
+	static void makeMove(Maze &thisMaze, int y, int x);//, int &myy, int &myx
 	//typedef decltype(bind(&Maze::makeMove, *this, int(), int())) makeMoveBind;
 
 	void clearScreen(int x, int y);
@@ -45,14 +45,14 @@ class Maze
 
 	bool stuck();
 
-	//vector <function<void(int,int)> lookAround();
+	vector  <function<void(Maze&)>> lookAround();
 
 	int availableFields();
 
 	void chooseMove();
 
-	template <typename T>
-	void clearStack(stack<T> _stck);
+	//template <typename T>
+	void clearStack(stack<Field> _stck);
 
 	void goBack();
 
@@ -68,7 +68,13 @@ class Maze
 	bool isReachable(int starty, int startx, int destinationy, int destinationx);
 
 	void createGraph(int nrOfCrossroads);
-
+	int myx,myy, nrOfMazes;
+	stack<Field> stck;
+	std::ofstream ofs;
+	vector <vector<Field> > maze;
+	int height =15;
+	int width =15;
+	int startx, starty;
 
 };
 

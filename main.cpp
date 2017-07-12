@@ -5,26 +5,27 @@ int main()
 {
     int a =1;
 Maze x;
+
 //getMazeFromFile("test1.txt");
     //srand( time( NULL ) );
-   /* while(a--)
+    while(a--)
     {
         std::stringstream name ;
-        name <<"test" <<nrOfMazes<< ".txt";
-        ofs.open(name.str());
+        name <<"test" <<x.nrOfMazes<< ".txt";
+        x.ofs.open(name.str());
 
-        clearStack(stck);
-        nrOfMazes++;
-        fillMaze();
+        x.clearStack(x.stck);
+        x.nrOfMazes++;
+        x.fillMaze();
         bool endGame = false;
         while(!endGame)
         {
-            if(stuck())
+            if(x.stuck())
             {
-                if(availableFields())
+                if(x.availableFields())
                 {
                     //if(DEBUG) cout <<"Myx: " << myx << " myy: " << myy  <<"\n";
-                    goBack();
+                    x.goBack();
                     continue;
                 }
                 else
@@ -34,23 +35,23 @@ Maze x;
             }
             if(!endGame)
             {
-                chooseMove();
+                x.chooseMove();
             }
         }
-        maze[starty][startx].sign = 'S';
-        maze[myy][myx].sign = 'X';
-        printToScreen();
-        printToFile();
-        ofs.close();
-				int nrOfCrossroads = createCrossroads() +2;
-				show(cout);
+        x.maze[x.starty][x.startx].sign = 'S';
+        x.maze[x.myy][x.myx].sign = 'X';
+        x.printToScreen();
+        x.printToFile();
+        x.ofs.close();
+				int nrOfCrossroads = x.createCrossroads() +2;
+				x.show(cout);
 		
 
 			
-			createGraph(nrOfCrossroads);
+			x.createGraph(nrOfCrossroads);
 			getchar();
 			
     }
-*/
+
     return 0;
 }
