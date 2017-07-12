@@ -12,6 +12,7 @@
 #endif
 #include <fstream>
 #include <sstream>
+#include "maze.h"
 using namespace std;
 #define DEBUG 0
 
@@ -30,11 +31,11 @@ stack<Field> stck;
 std::ofstream ofs;
 enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 
-void makeMove(int y, int x);//, int &myy, int &myx
+void Maze::makeMove(int y, int x);//, int &myy, int &myx
 
-typedef decltype(bind(makeMove, int(), int())) makeMoveBind;
+//typedef decltype(bind(makeMove, int(), int())) makeMoveBind;
 
-void clearScreen(int x, int y)
+void Maze::clearScreen(int x, int y)
 {
 #ifdef _WIN32
 		static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -46,17 +47,9 @@ void clearScreen(int x, int y)
 #endif
 }
 
-struct Field
-{
-    int x,y;
-    char sign;
-    bool visited = false;
-    bool wall = false;
-
-};
 
 
-void show(ostream& stream)
+void Maze::show(ostream& stream)
 {
     clearScreen(0,0);
     for(int i =0;i<height;i++)
@@ -75,7 +68,7 @@ void show(ostream& stream)
 
 }
 
-void getMazeFromFile(std::string fileName)
+void Maze::getMazeFromFile(std::string fileName)
 {
 	std::ifstream ifs(fileName);
   std::string line;
@@ -122,17 +115,17 @@ void getMazeFromFile(std::string fileName)
 show(cout);
 }
 
-void printToFile()
+void Maze::printToFile()
 {
     show(ofs);
 }
-void printToScreen()
+void Maze::printToScreen()
 {
     cout << "\n\n\n";
     show(cout);
 }
 
-void fillMaze()
+void Maze::fillMaze()
 {
     maze.clear();
     for(int i =0;i<height;i++)
@@ -167,7 +160,7 @@ void fillMaze()
 }
 
 
-bool stuck()
+bool Maze::stuck()
 {
     if(myx-2 <= 0  || maze[myy][myx-2].visited )
     {
@@ -185,7 +178,7 @@ bool stuck()
     return 0;
 }
 
-void makeMove(int y, int x)//, int &myy, int &myx
+void Maze::makeMove(int y, int x)//, int &myy, int &myx
 {
  if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
     {
@@ -202,7 +195,7 @@ void makeMove(int y, int x)//, int &myy, int &myx
     }
 }
 
-vector <makeMoveBind> lookAround()
+/*vector <makeMoveBind> Maze::lookAround()
 {
     vector <makeMoveBind> vct;
     if(!maze[myy][myx-1].wall  && !maze[myy][myx-2].visited )
@@ -214,10 +207,10 @@ vector <makeMoveBind> lookAround()
     if(!maze[myy+1][myx].wall && !maze[myy+2][myx].visited )
         vct.push_back(bind(makeMove, 1, 0) );
     return vct;
-}
+}*/
 
 
-int availableFields()
+int Maze::availableFields()
 {
     int ctr=0;
      for(int i =0;i<height;i++)
@@ -237,23 +230,23 @@ int availableFields()
     return ctr;
 }
 
-void chooseMove()
+void Maze::chooseMove()
 {
-    vector<makeMoveBind> directions = lookAround();
+   /* vector<makeMoveBind> directions = lookAround();
     int dir = rand()%directions.size() ;
     makeMoveBind go = directions[dir];
-    go();
+    go();*/
 }
 
 template <typename T>
-void clearStack(stack<T> _stck)
+void Maze::clearStack(stack<T> _stck)
 {
 	while (!_stck.empty())
   {
 	   _stck.pop();
   }
 }
-void goBack()
+void Maze::goBack()
 {
   maze[myy][myx].sign = ' ';
   stck.pop();
@@ -263,7 +256,7 @@ void goBack()
   maze[myy][myx].sign = '*';
   printToScreen();
 }
-bool isDeadEnd(int y, int x)
+bool Maze::isDeadEnd(int y, int x)
 {
 	if(maze[y][x].sign != '#' && maze[y][x].sign != 'S' && maze[y][x].sign != 'X')
 	{
@@ -277,7 +270,7 @@ bool isDeadEnd(int y, int x)
 return false;
 
 }
-int createCrossroads()
+int Maze::createCrossroads()
 {    
 int numberOfCrossroads =0;
 	for(int i =0;i<height;i++)
@@ -311,7 +304,7 @@ int numberOfCrossroads =0;
 	show(cout);
 	
 getchar();
-return numberOfCrossroads;
+return Maze::numberOfCrossroads;
 }
 vector<Field> getOnePath(int y, int x)
 {
@@ -336,7 +329,7 @@ vector<Field> getOnePath(int y, int x)
 	return fd;
 }
 
-bool isCrossroad(int y,int x)
+bool Maze::isCrossroad(int y,int x)
 {
 	if(maze[y][x].sign == '@' || maze[y][x].sign == 'S' || maze[y][x].sign == 'X')
 		return true;
@@ -346,60 +339,8 @@ return false;
 void createGraph(int nrOfCrossroads);
 
 
-int main()
-{
-    int a =1;
-//getMazeFromFile("test1.txt");
-    //srand( time( NULL ) );
-    while(a--)
-    {
-        std::stringstream name ;
-        name <<"test" <<nrOfMazes<< ".txt";
-        ofs.open(name.str());
 
-        clearStack(stck);
-        nrOfMazes++;
-        fillMaze();
-        bool endGame = false;
-        while(!endGame)
-        {
-            if(stuck())
-            {
-                if(availableFields())
-                {
-                    //if(DEBUG) cout <<"Myx: " << myx << " myy: " << myy  <<"\n";
-                    goBack();
-                    continue;
-                }
-                else
-                {
-                  endGame = true;
-                }
-            }
-            if(!endGame)
-            {
-                chooseMove();
-            }
-        }
-        maze[starty][startx].sign = 'S';
-        maze[myy][myx].sign = 'X';
-        printToScreen();
-        printToFile();
-        ofs.close();
-				int nrOfCrossroads = createCrossroads() +2;
-				show(cout);
-		
-
-			
-			createGraph(nrOfCrossroads);
-			getchar();
-			
-    }
-
-    return 0;
-}
-
-bool isReachable(int starty, int startx, int destinationy, int destinationx)
+bool Maze::isReachable(int starty, int startx, int destinationy, int destinationx)
 {
 	if(DEBUG)cout << "isReachable starty: " << starty << " startx: " << startx << " destinationy: " <<destinationy << " destinationx: " << destinationx <<"\n";
 	if(starty - destinationy == 0) //sameRow
@@ -426,7 +367,7 @@ bool isReachable(int starty, int startx, int destinationy, int destinationx)
 return false;
 }
 
-void createGraph(int nrOfCrossroads)
+void Maze::createGraph(int nrOfCrossroads)
 {
 //Prepare graph
 	int ** graph;
@@ -499,121 +440,5 @@ void createGraph(int nrOfCrossroads)
 		}cout <<"\n";
 	}
 }
-/*
-void createGraph(int nrOfCrossroads)
-{
-cout << "nrOfCrossroads: " << nrOfCrossroads << "\n";
-	int ** graph;
-	graph = new int * [nrOfCrossroads];
-	for(int i = 0; i <nrOfCrossroads; ++i)
-	{
-		graph[i] = new int[nrOfCrossroads];
-	}
-				
 
-	for(int j = 0; j <nrOfCrossroads; ++j)
-	{				
-		for(int i = 0; i <nrOfCrossroads; ++i)
-		{
-			graph[j][i] = 0;
-		}
-	}
-
-
-	Field * tab;
-	tab = new Field [nrOfCrossroads];
-	int crs=0;
-	int ctr =0;
-
-	int distance=-1;
-	bool found =false;
-
-	for(int i =0;i<height;i++)//TODO 1
-	{
-		for(int j =0;j<width;j++)//TODO 1
-		{
-			int z =1;
-				bool petla =true;
-				int distance2=0;
-			if(maze[i][j].sign == '@' || maze[i][j].sign == 'X' || maze[i][j].sign == 'S')
-			{ctr++;
-				cout <<"First if.maze[i][j].sign: " << maze[i][j].sign << " i: "<<i << " j: " << j<< " crs: " << crs <<"\n";
-				//CHeckDOwn
-				  tab[crs] = maze[i][j];
-					while(petla)
-					{cout <<"Petla\n";
-						distance2++;
-						if(maze[i-z][j].sign == '#') 
-						{							cout << "i-z: " << i-z << " j: " << j << " sign: " << "#" <<"\n";
-							//cout <<"while if break\n";
-							petla = false;
-						}else if(maze[i-z][j].sign == '@' || maze[i-z][j].sign == 'X' || maze[i-z][j].sign == 'S')
-						{cout << "while else if crs: " << crs << " distance2: " << distance2 << "\n";
-							//Find crs for this corssroad
-							cout << "i-z: " << i-z << " j: " << j << " \n";
-							int iter = 0;
-							for(int k =0; k <nrOfCrossroads; k++)
-							{
-								if(tab[k].x == j && tab[k].y == (i-z))
-								{iter =k;
-									cout << "For if i-z: " << i-z << " j: " << j << " iter: "<< iter << " \n";
-								}
-							}
-							cout <<"ITER: " <<iter << " crs: " << crs << "\n";
-							graph[crs][iter] = distance2;
-							distance2 = 0;
-								for(int j = 0; j <nrOfCrossroads; j++)
-								{	//cout <<"J:" << j << " ";			
-									for(int i = 0; i <nrOfCrossroads; i++)
-									{
-										cout << graph[j][i] << " ";
-									}cout <<"\n";
-								}
-								getchar();
-							petla = false;
-						}else if(maze[i-z][j].sign == ' ')
-						{
-							cout << "i-z: " << i-z << " j: " << j << " sign: " << " " <<"\n";
-					
-						}
-						z++;
-					}
-				
-				cout <<"Po petli\n\n";
-				if(found)	
-				{cout <<"Add to graph. Crs: " << crs << " distance: " << distance << "\n";
-					graph[crs-1][crs] = distance;
-					distance = 0;
-					found =false;
-					
-				}else
-				{//cout <<"found =true\n";
-					found =true;
-				}
-				
-				crs++;
-				
-			}
-			else if(maze[i][j].sign == '#')
-			{cout <<"'#' found =false;\n";
-				found =false;
-				distance = 0;
-			}else if(maze[i][j].sign == ' ')
-					distance++;
-		}
-	}
-	for(int j = 0; j <nrOfCrossroads; j++)
-	{	//cout <<"J:" << j << " ";			
-		for(int i = 0; i <nrOfCrossroads; i++)
-		{
-			cout << graph[j][i] << " ";
-		}cout <<"\n";
-	}
-					
-	for(int i = 0; i <nrOfCrossroads; ++i)
-	{
-		delete graph[i];
-	}
-	delete graph;
-}*/
 
