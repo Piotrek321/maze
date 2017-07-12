@@ -27,7 +27,7 @@ enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 class Maze
 {
 public:
-	static void makeMove(Maze &thisMaze, int y, int x);//, int &myy, int &myx
+ void makeMove( int y, int x);//, int &myy, int &myx
 	//typedef decltype(bind(&Maze::makeMove, *this, int(), int())) makeMoveBind;
 
 	void clearScreen(int x, int y);
@@ -45,7 +45,7 @@ public:
 
 	bool stuck();
 
-	vector  <function<void(Maze&)>> lookAround();
+	vector  <function<void()>> lookAround();
 
 	int availableFields();
 

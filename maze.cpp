@@ -171,34 +171,34 @@ bool Maze::stuck()
     return 0;
 }
 
-void Maze::makeMove(Maze &thisMaze, int y, int x)
+void Maze::makeMove( int y, int x)
 {
- if(!thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].wall && !thisMaze.maze[thisMaze.myy+(2*y)][thisMaze.myx+(2*x)].wall && !thisMaze.maze[thisMaze.myy+(2*y)][thisMaze.myx+(2*x)].visited  )
+ if(!maze[myy+y][myx+x].wall && !maze[myy+(2*y)][myx+(2*x)].wall && !maze[myy+(2*y)][myx+(2*x)].visited  )
     {
-        thisMaze.maze[thisMaze.myy][thisMaze.myx].sign = ' ';
-        thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].visited = true;
-        thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].sign = '*';
-        thisMaze.printToScreen();
-        thisMaze.maze[thisMaze.myy+y][thisMaze.myx+x].sign = ' ';
-        thisMaze.myy += (2*y);
-        thisMaze.myx += (2*x);
-        thisMaze.maze[thisMaze.myy][thisMaze.myx].visited = true;
-        thisMaze.maze[thisMaze.myy][thisMaze.myx].sign = '*';
-        thisMaze.stck.push( thisMaze.maze[thisMaze.myy][thisMaze.myx]);
+        maze[myy][myx].sign = ' ';
+        maze[myy+y][myx+x].visited = true;
+        maze[myy+y][myx+x].sign = '*';
+        printToScreen();
+        maze[myy+y][myx+x].sign = ' ';
+        myy += (2*y);
+        myx += (2*x);
+        maze[myy][myx].visited = true;
+        maze[myy][myx].sign = '*';
+        stck.push( maze[myy][myx]);
     }
 }
 
-vector <function<void(Maze&)>> Maze::lookAround()
+vector <function<void()>> Maze::lookAround()
 {
-    vector <function<void(Maze&)>> vct;
+    vector <function<void()>> vct;
     if(!maze[myy][myx-1].wall  && !maze[myy][myx-2].visited )
-        vct.push_back(bind( Maze::makeMove, placeholders::_1, 0, -1) );
+        vct.push_back(bind( &Maze::makeMove, this, 0, -1) );
     if(!maze[myy][myx+1].wall  && !maze[myy][myx+2].visited )
-       vct.push_back(bind( Maze::makeMove, placeholders::_1, 0, 1) );
+        vct.push_back(bind( &Maze::makeMove, this, 0, 1) );
     if(!maze[myy-1][myx].wall  && !maze[myy-2][myx].visited)
-        vct.push_back(bind( Maze::makeMove, placeholders::_1, -1, 0) );
+        vct.push_back(bind( &Maze::makeMove, this, -1, 0) );
     if(!maze[myy+1][myx].wall && !maze[myy+2][myx].visited )
-        vct.push_back(bind( Maze::makeMove, placeholders::_1, 1, 0) );
+        vct.push_back(bind( &Maze::makeMove, this, 1, 0) );
 
     return vct;
 }
@@ -226,10 +226,10 @@ int Maze::availableFields()
 
 void Maze::chooseMove()
 {
-    vector<function<void(Maze&)>> directions = lookAround();
+    vector<function<void()>> directions = lookAround();
     int dir = rand()%directions.size() ;
-    function<void(Maze&)> go = directions[dir];
-    go(*this);
+    function<void()> go = directions[dir];
+    go();
 }
 
 //template <typename T>
