@@ -12,8 +12,9 @@
 #endif
 #include <fstream>
 #include <sstream>
+#include <list>
 using namespace std;
-#define DEBUG 0
+#define DEBUG 1
 struct Field
 {
     int x,y;
@@ -27,7 +28,10 @@ enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 class Maze
 {
 public:
- void makeMove( int y, int x);//, int &myy, int &myx
+	void createMaze();
+	Maze(int height_, int width_) : height(height_), width(width_){};
+private: 
+	void makeMove( int y, int x);//, int &myy, int &myx
 	//typedef decltype(bind(&Maze::makeMove, *this, int(), int())) makeMoveBind;
 
 	void clearScreen(int x, int y);
@@ -62,20 +66,22 @@ public:
 
 	vector<Field> getOnePath(int y, int x);
 
-
+	void findShortestWayOut(int nrOfCrossroads);
 	bool isCrossroad(int y,int x);
 
 	bool isReachable(int starty, int startx, int destinationy, int destinationx);
 
 	void createGraph(int nrOfCrossroads);
-	int myx,myy, nrOfMazes;
+	int myx,myy, nrOfMazes=0;
+	vector<Field*> crossroads;
 	stack<Field> stck;
 	std::ofstream ofs;
 	vector <vector<Field> > maze;
-	int height =15;
-	int width =15;
-	int startx, starty;
-
+	int height;
+	int width ;
+	int startx, starty, endx, endy;
+	int startRow, endRow;
+	int ** graph;
 };
 
 

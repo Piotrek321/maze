@@ -14,12 +14,12 @@
 #include <sstream>
 #include "maze.h"
 using namespace std;
-#define DEBUG 0
+
 
 struct Field;
 
 #ifdef _WIN32
-	int sleepTime= 10;
+	int sleepTime= 1;
 #else
 	int sleepTime= 50000;
 #endif
@@ -44,19 +44,19 @@ void Maze::clearScreen(int x, int y)
 
 void Maze::show(ostream& stream)
 {
-    clearScreen(0,0);
-    for(int i =0;i<height;i++)
+  clearScreen(0,0);
+  for(int i =0;i<height;i++)
+  {
+    for(int j =0;j<width;j++)
     {
-        for(int j =0;j<width;j++)
-        {
-          stream<< maze[i][j].sign;
-        }
-        stream << "\n";
+      stream<< maze[i][j].sign;
     }
+    stream << "\n";
+  }
 #ifdef _WIN32
-    Sleep(sleepTime);
+  Sleep(sleepTime);
 #else
-		usleep(sleepTime);
+  usleep(sleepTime);
 #endif
 
 }
@@ -297,7 +297,7 @@ int numberOfCrossroads =0;
   }	
 	show(cout);
 	
-getchar();
+//getchar();
 return numberOfCrossroads;
 }
 vector<Field> Maze::getOnePath(int y, int x)
@@ -348,7 +348,9 @@ bool Maze::isReachable(int starty, int startx, int destinationy, int destination
 		for(int i=starty+1; i <destinationy+1; i++)
 		{
 			if(DEBUG)cout <<"isReachable the same column\n";
+			cout <<"maze[i][startx]: " << maze[i][startx].sign << "\n";
 			if(isCrossroad(i, startx) && i == destinationy ) return true;
+			if(isCrossroad(i, startx) && i != destinationy ) return false;
 			if(maze[i][startx].sign =='#') return false;
 		} 
 	}
@@ -360,7 +362,7 @@ return false;
 void Maze::createGraph(int nrOfCrossroads)
 {
 //Prepare graph
-	int ** graph;
+
 	graph = new int * [nrOfCrossroads];
 	for(int i = 0; i <nrOfCrossroads; ++i)
 	{
@@ -376,13 +378,18 @@ void Maze::createGraph(int nrOfCrossroads)
 	}
 
 //Collect all crossroads
-	vector<Field*> crossroads;
+
+	int iter = 0;
 	for(int i =1;i<height;i++)
 	{
 		for(int j =1;j<width;j++)
 		{
 			if(isCrossroad(i,j))
 			{
+
+				if(maze[i][j].sign == 'S') startRow = iter;
+				if(maze[i][j].sign == 'X') endRow = iter;
+				iter ++;
 				crossroads.push_back(&maze[i][j]);
 			}
 		}
@@ -429,6 +436,114 @@ void Maze::createGraph(int nrOfCrossroads)
 			cout << graph[j][i] << " ";
 		}cout <<"\n";
 	}
+	cout <<"EndRow: " << endRow << " startRow: " << startRow << "\n";
+	getchar();
+}
+
+void Maze::createMaze()
+{
+	std::stringstream name ;
+  name <<"test" <<nrOfMazes<< ".txt";
+  ofs.open(name.str());
+	
+	clearStack(stck);
+  nrOfMazes++;
+  fillMaze();
+  bool endGame = false;
+  while(!endGame)
+  {
+  	if(stuck())
+    {
+  	  if(availableFields())
+      {
+      	goBack();
+        continue;
+      }
+      else
+      {
+      	endGame = true;
+      }
+    }
+    if(!endGame)
+    {
+    	chooseMove();
+    }
+  }
+  maze[starty][startx].sign = 'S';
+  maze[myy][myx].sign = 'X';
+	endx = myx;
+	endy = myy;
+  printToScreen();
+  printToFile();
+  ofs.close();
+	int nrOfCrossroads = createCrossroads() +2;
+	show(cout);
+				
+	createGraph(nrOfCrossroads);
+findShortestWayOut(nrOfCrossroads);
+getchar();
+}
+
+void Maze::findShortestWayOut(int nrOfCrossroads)
+{
+	cout << "graph[startRow]: " <<  " graph[endRow]: " << graph[endRow] << "\n";
+  int dist=0;
+	list<int> way;
+int start = startRow;
+bool deadend = true;
+int prev= startRow;
+while(deadend)
+{
+	for(int i =0; i<nrOfCrossroads;i++)
+	{
+		cout << "graph[start][i]: " << graph[start][i] << " " ;
+		getchar();
+		if(graph[start][i] != 0 && i != prev)
+		{
+			prev = start;
+			cout <<"prev: " << prev <<"\n";
+			way.push_back(i);
+			start = i;
+			cout <<"start: " << start <<"\n";
+			i=0;
+			cout <<"i: " << i <<"\n";
+			getchar();
+
+			if(start==endRow) 
+			{
+				cout <<"end\n";
+				getchar();
+				deadend = false;	
+				break;	
+			}		
+		}else if(i == nrOfCrossroads-1)
+		{	
+			cout <<"Deadend\n";
+			getchar();
+			deadend = false;
+		}else
+		{
+			cout <<"elsee\n";
+		}
+	}
+	prev = start;
+
+}
+//getchar();
+for(auto x : way)
+{
+cout << "x: " << x;
+
+}
+//getchar();
+	cout <<"\n";
+	for(int i =0; i<nrOfCrossroads;i++)
+	{
+		cout << graph[endRow][i] << " " ;
+	}
+
+
+
 }
 
 
