@@ -7,10 +7,11 @@ int main()
 
 
 //getMazeFromFile("test1.txt");
-    //srand( time( NULL ) );
+    srand( time( NULL ) );
+Maze x(15,15);
     while(a--)
     {
-				Maze x(7,7);
+				
         x.createMaze();
 		//	getchar();
 			

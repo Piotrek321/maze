@@ -7,6 +7,7 @@
 #include <time.h>
 #include <functional>
 #include <unistd.h>
+#include <algorithm>
 #ifdef _WIN32
 	#include <windows.h>
 #endif
@@ -14,14 +15,19 @@
 #include <sstream>
 #include <list>
 using namespace std;
-#define DEBUG 1
+#define DEBUG 0
 struct Field
 {
-    int x,y;
-    char sign;
-    bool visited = false;
-    bool wall = false;
+  int x,y;
+  char sign;
+  bool visited = false;
+  bool wall = false;
+};
 
+struct FieldInGraph
+{
+  int value, x, y;
+  bool visited = false;
 };
 
 enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
@@ -81,7 +87,7 @@ private:
 	int width ;
 	int startx, starty, endx, endy;
 	int startRow, endRow;
-	int ** graph;
+	FieldInGraph ** graph;
 };
 
 

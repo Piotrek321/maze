@@ -17,7 +17,7 @@ using namespace std;
 
 
 struct Field;
-
+struct FieldInGraph;
 #ifdef _WIN32
 	int sleepTime= 1;
 #else
@@ -278,7 +278,7 @@ int numberOfCrossroads =0;
 					maze[i][j].sign = '@';
 					numberOfCrossroads++;
 				}
-				else if(maze[i][j-1].sign != '@' && maze[i][j-1].sign != 'S' && maze[i][j-1].sign != 'X' && maze[i][j+1].sign != '@' && maze[i][j+1].sign != 'S' && maze[i][j-1].sign != maze[i][j+1].sign )
+				else if(maze[i][j-1].sign != '@' && maze[i][j-1].sign != 'S' && maze[i][j-1].sign != 'X' && maze[i][j+1].sign != '@' && maze[i][j+1].sign != 'X' && maze[i][j+1].sign != 'S' && maze[i][j-1].sign != maze[i][j+1].sign )
 				{
 					maze[i][j].sign = '@';
 					numberOfCrossroads++;
@@ -339,6 +339,7 @@ bool Maze::isReachable(int starty, int startx, int destinationy, int destination
 		{
 			if(DEBUG)cout <<"isReachable the same row\n";
 			if(isCrossroad(starty, i)&& i == destinationx) return true;
+			if(isCrossroad(starty, i)&& i != destinationx) return false;
 			if(maze[starty][i].sign =='#') return false;
 		} 
 	}
@@ -348,7 +349,7 @@ bool Maze::isReachable(int starty, int startx, int destinationy, int destination
 		for(int i=starty+1; i <destinationy+1; i++)
 		{
 			if(DEBUG)cout <<"isReachable the same column\n";
-			cout <<"maze[i][startx]: " << maze[i][startx].sign << "\n";
+			if(DEBUG)cout <<"maze[i][startx]: " << maze[i][startx].sign << "\n";
 			if(isCrossroad(i, startx) && i == destinationy ) return true;
 			if(isCrossroad(i, startx) && i != destinationy ) return false;
 			if(maze[i][startx].sign =='#') return false;
@@ -363,17 +364,19 @@ void Maze::createGraph(int nrOfCrossroads)
 {
 //Prepare graph
 
-	graph = new int * [nrOfCrossroads];
+	graph = new FieldInGraph * [nrOfCrossroads];
 	for(int i = 0; i <nrOfCrossroads; ++i)
 	{
-		graph[i] = new int[nrOfCrossroads];
+		graph[i] = new FieldInGraph[nrOfCrossroads];
 	}
 
 	for(int j = 0; j <nrOfCrossroads; ++j)
 	{				
 		for(int i = 0; i <nrOfCrossroads; ++i)
 		{
-			graph[j][i] = 0;
+			graph[j][i].value = 0;
+			graph[j][i].x = i ;
+			graph[j][i].y = j ;
 		}
 	}
 
@@ -409,8 +412,8 @@ void Maze::createGraph(int nrOfCrossroads)
 				if(DEBUG)cout << "isReachable: " << isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x) <<"\n";
 				if(isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x))
 				{
-					graph[i][j] = crossroads[i]->x - crossroads[j]->x;
-					graph[j][i] = crossroads[i]->x - crossroads[j]->x;
+					graph[i][j].value = crossroads[i]->x - crossroads[j]->x;
+					graph[j][i].value = crossroads[i]->x - crossroads[j]->x;
 				}
 			}
 			if(crossroads[j]->x == crossroads[i]->x)
@@ -422,8 +425,8 @@ void Maze::createGraph(int nrOfCrossroads)
 				if(DEBUG)cout << "isReachable: " << isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x) <<"\n";
 				if(isReachable(crossroads[j]->y, crossroads[j]->x , crossroads[i]->y, crossroads[i]->x))
 				{
-					graph[i][j] = crossroads[i]->y - crossroads[j]->y;
-					graph[j][i] = crossroads[i]->y - crossroads[j]->y;
+					graph[i][j].value = crossroads[i]->y - crossroads[j]->y;
+					graph[j][i].value = crossroads[i]->y - crossroads[j]->y;
 				}
 			}
 		}
@@ -433,7 +436,7 @@ void Maze::createGraph(int nrOfCrossroads)
 	{			
 		for(int i = 0; i <nrOfCrossroads; i++)
 		{
-			cout << graph[j][i] << " ";
+			cout << graph[j][i].value << " ";
 		}cout <<"\n";
 	}
 	cout <<"EndRow: " << endRow << " startRow: " << startRow << "\n";
@@ -476,74 +479,101 @@ void Maze::createMaze()
   printToScreen();
   printToFile();
   ofs.close();
+	crossroads.clear();
 	int nrOfCrossroads = createCrossroads() +2;
-	show(cout);
-				
+	show(cout);	
 	createGraph(nrOfCrossroads);
-findShortestWayOut(nrOfCrossroads);
-getchar();
+	findShortestWayOut(nrOfCrossroads);
+	
+	for(int i = 0; i <nrOfCrossroads; ++i)
+	{
+		delete graph[i];
+	}
+	delete graph;
+	getchar();
 }
 
 void Maze::findShortestWayOut(int nrOfCrossroads)
 {
-	cout << "graph[startRow]: " <<  " graph[endRow]: " << graph[endRow] << "\n";
   int dist=0;
 	list<int> way;
-int start = startRow;
-bool deadend = true;
-int prev= startRow;
-while(deadend)
-{
-	for(int i =0; i<nrOfCrossroads;i++)
-	{
-		cout << "graph[start][i]: " << graph[start][i] << " " ;
-		getchar();
-		if(graph[start][i] != 0 && i != prev)
-		{
-			prev = start;
-			cout <<"prev: " << prev <<"\n";
-			way.push_back(i);
-			start = i;
-			cout <<"start: " << start <<"\n";
-			i=0;
-			cout <<"i: " << i <<"\n";
-			getchar();
+	stack<FieldInGraph> moves;
+	int row = startRow;
+	way.push_back(startRow);
+	bool deadend = true;
+	int prev= startRow;
 
-			if(start==endRow) 
+	while(deadend)
+	{
+		
+		for(int i =0; i<nrOfCrossroads;i++)
+		{
+			if(DEBUG)cout <<"Row: " << row << " i: " << i << "graph[row][i].value: " << graph[row][i].value <<"\n"; 
+			if(row == endRow)
 			{
-				cout <<"end\n";
-				getchar();
-				deadend = false;	
-				break;	
-			}		
-		}else if(i == nrOfCrossroads-1)
-		{	
-			cout <<"Deadend\n";
-			getchar();
-			deadend = false;
-		}else
-		{
-			cout <<"elsee\n";
+				if(DEBUG)cout <<"row == endRow\n";
+				moves.push(graph[row][i]);
+				deadend = false;
+				break;
+			}
+			if(graph[row][i].value != 0 && !graph[row][i].visited)
+			{	
+				if(i == prev)
+				{
+					graph[row][i].visited = true;
+					if(DEBUG)cout <<"row == prev\n";
+					
+				}else
+				{				
+					
+					dist += graph[row][i].value;
+					prev = row;
+					graph[row][i].visited =true;
+					graph[i][row].visited =true;
+					moves.push(graph[row][i]);
+					row = i;
+					i =-1;
+				}
+			}
 		}
+		if(DEBUG)cout <<"Moves.size(): " << moves.size() << "\n";
+
+		if(deadend)
+		{
+			if(DEBUG)cout <<"Pop\n";			
+			FieldInGraph move = moves.top();	
+			moves.pop();	
+	
+			if(DEBUG)cout <<"move.y: " << move.y << " move.x: " << move.x <<"\n";
+			prev = row;			
+			row = move.y; 
+
+			bool ok =true;
+			while(ok)
+			{
+				for(int i =0; i<nrOfCrossroads;i++)
+				{
+					if(DEBUG)cout <<"Second Row: " << row << " i: " << i << "graph[row][i].value: " << graph[row][i].value <<  " graph[row][i].visited: " << graph[row][i].visited << "\n"; 
+					if(graph[row][i].value != 0 && !graph[row][i].visited) ok = false;
+				}
+				if(ok)
+				{
+					move = moves.top();				
+					moves.pop();
+					if(DEBUG)cout <<"move.y: " << move.y << " move.x: " << move.x <<"\n";
+					row = move.y; 
+							
+				}
+	
+			}
+		}	
 	}
-	prev = start;
-
-}
-//getchar();
-for(auto x : way)
-{
-cout << "x: " << x;
-
-}
-//getchar();
+getchar();
+   while (!moves.empty()) {
+        std::cout<<"moves: " << moves.top().value;
+				std::cout<<" y: " << moves.top().y;
+				std::cout<<" x: " << moves.top().x << " \n";
+        moves.pop();
+    }
 	cout <<"\n";
-	for(int i =0; i<nrOfCrossroads;i++)
-	{
-		cout << graph[endRow][i] << " " ;
-	}
-
-
-
 }
-
-
