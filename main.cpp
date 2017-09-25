@@ -5,8 +5,9 @@ int main()
 {
     int a =10;
 
-
-//getMazeFromFile("test1.txt");
+//Maze y(15,15);
+//y.getMazeFromFile("test1.txt");
+getchar();
     srand( time( NULL ) );
 Maze x(15,15);
     while(a--)

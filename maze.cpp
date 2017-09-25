@@ -7,116 +7,15 @@
 #include <time.h>
 #include <functional>
 #include <unistd.h>
-#ifdef _WIN32
-	#include <windows.h>
-#endif
+
 #include <fstream>
 #include <sstream>
 #include "maze.h"
 using namespace std;
 
-
 struct Field;
+
 struct FieldInGraph;
-#ifdef _WIN32
-	int sleepTime= 1;
-#else
-	int sleepTime= 50000;
-#endif
-
-//void Maze::makeMove(int y, int x);//, int &myy, int &myx
-
-//typedef decltype(bind(makeMove, int(), int())) makeMoveBind;
-
-void Maze::clearScreen(int x, int y)
-{
-#ifdef _WIN32
-		static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    std::cout.flush();
-    COORD coord = { (SHORT)x, (SHORT)y };
-    SetConsoleCursorPosition(hOut, coord);
-#else
-    cout << string( 50, '\n' );
-#endif
-}
-
-
-
-void Maze::show(ostream& stream)
-{
-  clearScreen(0,0);
-  for(int i =0;i<height;i++)
-  {
-    for(int j =0;j<width;j++)
-    {
-      stream<< maze[i][j].sign;
-    }
-    stream << "\n";
-  }
-#ifdef _WIN32
-  Sleep(sleepTime);
-#else
-  usleep(sleepTime);
-#endif
-
-}
-
-void Maze::getMazeFromFile(std::string fileName)
-{
-	std::ifstream ifs(fileName);
-  std::string line;
-	int x=0, y=0;
-	while(getline(ifs,line))
-	{
-			vector<Field> ve;
-			std::cout << line <<"\n";
-			for(auto &_field : line)
-			{
-				Field field;
-				field.x = x;
-				field.y = y;
-				std::cout <<"field: " << _field << "\n";
-				switch(_field)
-				{
-					case '#':
-						field.sign= '#';
-						field.wall = true; 
-						break;
-					case ' ':
-						field.sign= ' ';
-						field.wall = false;  
-						break; 
-					case 'S':
-						field.sign= 'S';
-						field.wall = false; 
-						startx = x;
-						starty = y; 
-						break; 
-					case 'X':
-						field.sign= 'X';
-						field.wall = false; 
-						break; 
-				}
-				ve.push_back(field);
-				x++;
-			}
- 		maze.push_back(ve);
-	x=0;
-	y++;
-	}
-
-show(cout);
-}
-
-void Maze::printToFile()
-{
-    show(ofs);
-}
-void Maze::printToScreen()
-{
-    cout << "\n\n\n";
-    show(cout);
-}
 
 void Maze::fillMaze()
 {
@@ -178,7 +77,7 @@ void Maze::makeMove( int y, int x)
         maze[myy][myx].sign = ' ';
         maze[myy+y][myx+x].visited = true;
         maze[myy+y][myx+x].sign = '*';
-        printToScreen();
+        MazeScreenManager::printToScreen(maze);
         maze[myy+y][myx+x].sign = ' ';
         myy += (2*y);
         myx += (2*x);
@@ -248,7 +147,7 @@ void Maze::goBack()
   myx= tmp.x;
   myy = tmp.y;
   maze[myy][myx].sign = '*';
-  printToScreen();
+  MazeScreenManager::printToScreen(maze);
 }
 bool Maze::isDeadEnd(int y, int x)
 {
@@ -295,7 +194,7 @@ int numberOfCrossroads =0;
     }
 
   }	
-	show(cout);
+	MazeScreenManager::show(cout, maze);
 	
 //getchar();
 return numberOfCrossroads;
@@ -445,9 +344,7 @@ void Maze::createGraph(int nrOfCrossroads)
 
 void Maze::createMaze()
 {
-	std::stringstream name ;
-  name <<"test" <<nrOfMazes<< ".txt";
-  ofs.open(name.str());
+
 	
 	clearStack(stck);
   nrOfMazes++;
@@ -476,12 +373,12 @@ void Maze::createMaze()
   maze[myy][myx].sign = 'X';
 	endx = myx;
 	endy = myy;
-  printToScreen();
-  printToFile();
-  ofs.close();
+  MazeScreenManager::printToScreen(maze);
+	MazeFileHandler::printMazeToFile(maze);
+
 	crossroads.clear();
 	int nrOfCrossroads = createCrossroads() +2;
-	show(cout);	
+	MazeScreenManager::show(cout, maze);
 	createGraph(nrOfCrossroads);
 	findShortestWayOut(nrOfCrossroads);
 	

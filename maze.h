@@ -1,21 +1,5 @@
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <vector>
-#include <stack>
-#include <cstdio>
-#include <time.h>
-#include <functional>
-#include <unistd.h>
-#include <algorithm>
-#ifdef _WIN32
-	#include <windows.h>
-#endif
-#include <fstream>
-#include <sstream>
-#include <list>
-using namespace std;
-#define DEBUG 0
+#ifndef Maze_H_
+#define Maze_H_
 struct Field
 {
   int x,y;
@@ -23,6 +7,25 @@ struct Field
   bool visited = false;
   bool wall = false;
 };
+
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <vector>
+#include <stack>
+#include <cstdio>
+
+#include <functional>
+#include <unistd.h>
+#include <algorithm>
+
+#include <fstream>
+#include <sstream>
+#include <list>
+#include "MazeScreenManager.h"
+#include "MazeFileHandler.h"
+using namespace std;
+#define DEBUG 0
 
 struct FieldInGraph
 {
@@ -36,20 +39,14 @@ class Maze
 public:
 	void createMaze();
 	Maze(int height_, int width_) : height(height_), width(width_){};
+  Maze(){};
+	int startx, starty, endx, endy;
+	vector <vector<Field>> maze;
 private: 
 	void makeMove( int y, int x);//, int &myy, int &myx
 	//typedef decltype(bind(&Maze::makeMove, *this, int(), int())) makeMoveBind;
 
-	void clearScreen(int x, int y);
 
-	void show(ostream& stream);
-
-	void getMazeFromFile(std::string fileName);
-
-
-	void printToFile();
-
-	void printToScreen();
 
 	void fillMaze();
 
@@ -81,14 +78,14 @@ private:
 	int myx,myy, nrOfMazes=0;
 	vector<Field*> crossroads;
 	stack<Field> stck;
-	std::ofstream ofs;
-	vector <vector<Field> > maze;
+
+
 	int height;
 	int width ;
-	int startx, starty, endx, endy;
+
 	int startRow, endRow;
 	FieldInGraph ** graph;
 };
 
-
+#endif
 
