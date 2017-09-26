@@ -43,10 +43,7 @@ public:
 	int startx, starty, endx, endy;
 	vector <vector<Field>> maze;
 private: 
-	void makeMove( int y, int x);//, int &myy, int &myx
-	//typedef decltype(bind(&Maze::makeMove, *this, int(), int())) makeMoveBind;
-
-
+	void makeMove( int y, int x);
 
 	void fillMaze();
 
@@ -58,34 +55,56 @@ private:
 
 	void chooseMove();
 
-	//template <typename T>
 	void clearStack(stack<Field> _stck);
 
 	void goBack();
 
 	bool isDeadEnd(int y, int x);
 
-	int createCrossroads();
 
-	vector<Field> getOnePath(int y, int x);
 
-	void findShortestWayOut(int nrOfCrossroads);
-	bool isCrossroad(int y,int x);
 
-	bool isReachable(int starty, int startx, int destinationy, int destinationx);
 
-	void createGraph(int nrOfCrossroads);
-	int myx,myy, nrOfMazes=0;
-	vector<Field*> crossroads;
+
+
+
+
+
+
+	int myx,myy;
+
+
+
 	stack<Field> stck;
-
-
 	int height;
 	int width ;
 
 	int startRow, endRow;
-	FieldInGraph ** graph;
+
 };
 
 #endif
+/*
+	vector<Field> getOnePath(int y, int x);
+vector<Field> Maze::getOnePath(int y, int x)
+{
+	vector<Field> fd;
+  if(maze[y][x-1].sign != '#')
+	{
+		fd.push_back(maze[y][x-1]);
+	}
+  if(maze[y][x+1].sign != '#')
+	{
+		fd.push_back(maze[y][x+1]);
+	}
+  if(maze[y-1][x].sign != '#')
+	{
+		fd.push_back(maze[y-1][x]);
+	}
+  if(maze[y+1][x].sign != '#')
+	{
+		fd.push_back(maze[y+1][x]);
+	}	
 
+	return fd;
+}*/
