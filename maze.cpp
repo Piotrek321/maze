@@ -15,7 +15,7 @@ using namespace std;
 
 struct Field;
 
-struct FieldInGraph;
+int Maze::nrOfMazes = 0;
 
 void Maze::fillMaze()
 {
@@ -153,6 +153,7 @@ void Maze::goBack()
 
 void Maze::createMaze()
 {
+  nrOfMazes ++;
 	clearStack(stck);
   fillMaze();
   bool endGame = false;
@@ -177,10 +178,10 @@ void Maze::createMaze()
   }
   maze[starty][startx].sign = 'S';
   maze[myy][myx].sign = 'X';
-	endx = myx;
-	endy = myy;
+	//endx = myx;
+	//endy = myy;
   MazeScreenManager::printToScreen(maze);
-	MazeFileHandler::printMazeToFile(maze);
+	MazeFileHandler::printMazeToFile(maze, nrOfMazes);
 	MazeScreenManager::show(cout, maze);
 
 	//int nrOfCrossroads = createCrossroads() +2;

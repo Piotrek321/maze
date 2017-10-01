@@ -27,11 +27,6 @@ struct Field
 using namespace std;
 #define DEBUG 0
 
-struct FieldInGraph
-{
-  int value, x, y;
-  bool visited = false;
-};
 
 enum Dirs{LEFT=0 , RIGHT, UP, DOWN};
 class Maze
@@ -40,7 +35,7 @@ public:
 	void createMaze();
 	Maze(int height_, int width_) : height(height_), width(width_){};
   Maze(){};
-	int startx, starty, endx, endy;
+	int startx, starty;//, endx, endy;
 	vector <vector<Field>> maze;
 private: 
 	void makeMove( int y, int x);
@@ -62,24 +57,12 @@ private:
 	bool isDeadEnd(int y, int x);
 
 
-
-
-
-
-
-
-
-
-
-	int myx,myy;
-
-
+  static int nrOfMazes;
 
 	stack<Field> stck;
-	int height;
-	int width ;
 
-	int startRow, endRow;
+
+	int startRow, endRow, myx, myy, height, width;
 
 };
 

@@ -1,6 +1,6 @@
 
 #include "maze.h"
-
+#include "MazeAlgorithm.h"
 int main()
 {
     int a =10;
@@ -10,10 +10,14 @@ int main()
 
     srand( time( NULL ) );
 Maze x(15,15);
+
     while(a--)
     {
 				
         x.createMaze();
+				MazeAlgorithm mazeAlgor(x);
+				mazeAlgor.createCrossroads();
+				mazeAlgor.createGraph();
 		//	getchar();
 			
     }

@@ -1,4 +1,11 @@
 #include "MazeAlgorithm.h"
+
+MazeAlgorithm::MazeAlgorithm(Maze &_maze)
+{
+  maze = _maze.maze;
+	//mazeHandler = _maze;
+}
+
 bool MazeAlgorithm::isDeadEnd(int y, int x)
 {
 	if(maze[y][x].sign != '#' && maze[y][x].sign != 'S' && maze[y][x].sign != 'X')
@@ -54,6 +61,7 @@ int numberOfCrossroads =0;
 	MazeScreenManager::show(cout, maze);
 	
 //getchar();
+m_nrOfCrossroads = numberOfCrossroads;
 return numberOfCrossroads;
 }
 
@@ -87,19 +95,19 @@ bool MazeAlgorithm::isReachable(int starty, int startx, int destinationy, int de
 return false;
 }
 
-void MazeAlgorithm::createGraph(int nrOfCrossroads)
+void MazeAlgorithm::createGraph()//int nrOfCrossroads)
 {
 //Prepare graph
 
-	graph = new FieldInGraph * [nrOfCrossroads];
-	for(int i = 0; i <nrOfCrossroads; ++i)
+	graph = new FieldInGraph * [m_nrOfCrossroads];
+	for(int i = 0; i <m_nrOfCrossroads; ++i)
 	{
-		graph[i] = new FieldInGraph[nrOfCrossroads];
+		graph[i] = new FieldInGraph[m_nrOfCrossroads];
 	}
 
-	for(int j = 0; j <nrOfCrossroads; ++j)
+	for(int j = 0; j <m_nrOfCrossroads; ++j)
 	{				
-		for(int i = 0; i <nrOfCrossroads; ++i)
+		for(int i = 0; i <m_nrOfCrossroads; ++i)
 		{
 			graph[j][i].value = 0;
 			graph[j][i].x = i ;
@@ -124,11 +132,11 @@ void MazeAlgorithm::createGraph(int nrOfCrossroads)
 			}
 		}
 	}
-	if(nrOfCrossroads != crossroads.size()) cout <<"ERROR!!!\n";
+	if(m_nrOfCrossroads != crossroads.size()) cout <<"ERROR!!!\n";
 	//Find two nearest crossroads in the same row 
-	for(int j =0; j <nrOfCrossroads-1; j++)
+	for(int j =0; j <m_nrOfCrossroads-1; j++)
 	{
-		for(int i =j+1; i <nrOfCrossroads; i++)
+		for(int i =j+1; i <m_nrOfCrossroads; i++)
 		{
 			if(crossroads[j]->y == crossroads[i]->y)
 			{
@@ -159,9 +167,9 @@ void MazeAlgorithm::createGraph(int nrOfCrossroads)
 		}
 	}
 
-	for(int j = 0; j <nrOfCrossroads; j++)
+	for(int j = 0; j <m_nrOfCrossroads; j++)
 	{			
-		for(int i = 0; i <nrOfCrossroads; i++)
+		for(int i = 0; i <m_nrOfCrossroads; i++)
 		{
 			cout << graph[j][i].value << " ";
 		}cout <<"\n";
@@ -170,7 +178,7 @@ void MazeAlgorithm::createGraph(int nrOfCrossroads)
 	getchar();
 }
 
-void MazeAlgorithm::findShortestWayOut(int nrOfCrossroads)
+void MazeAlgorithm::findShortestWayOut(int m_nrOfCrossroads)
 {
   int dist=0;
 	list<int> way;
@@ -183,7 +191,7 @@ void MazeAlgorithm::findShortestWayOut(int nrOfCrossroads)
 	while(deadend)
 	{
 		
-		for(int i =0; i<nrOfCrossroads;i++)
+		for(int i =0; i<m_nrOfCrossroads;i++)
 		{
 			if(DEBUG)cout <<"Row: " << row << " i: " << i << "graph[row][i].value: " << graph[row][i].value <<"\n"; 
 			if(row == endRow)
@@ -228,7 +236,7 @@ void MazeAlgorithm::findShortestWayOut(int nrOfCrossroads)
 			bool ok =true;
 			while(ok)
 			{
-				for(int i =0; i<nrOfCrossroads;i++)
+				for(int i =0; i<m_nrOfCrossroads;i++)
 				{
 					if(DEBUG)cout <<"Second Row: " << row << " i: " << i << "graph[row][i].value: " << graph[row][i].value <<  " graph[row][i].visited: " << graph[row][i].visited << "\n"; 
 					if(graph[row][i].value != 0 && !graph[row][i].visited) ok = false;

@@ -1,10 +1,10 @@
 #include "MazeFileHandler.h"
 
-void MazeFileHandler::printMazeToFile(const vector<vector<Field>> &maze)
+void MazeFileHandler::printMazeToFile(const vector<vector<Field>> &maze, int nrOfMazes)
 {
 	std::ofstream ofs;
 	std::stringstream name ;
-  name <<"test" << ".txt";
+  name <<"test" << nrOfMazes << ".txt";
   ofs.open(name.str());
   MazeScreenManager::show(ofs, maze);
   ofs.close();

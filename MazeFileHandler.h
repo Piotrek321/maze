@@ -15,7 +15,7 @@ class MazeFileHandler
 public:
 	Maze getMazeFromFile(std::string fileName);
 
-	static void printMazeToFile(const vector<vector<Field>> &maze);
+	static void printMazeToFile(const vector<vector<Field>> &maze, int nrOfMazes);
 
 };
 
