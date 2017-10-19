@@ -31,22 +31,22 @@ Maze MazeFileHandler::getMazeFromFile(std::string fileName)
 				{
 					case '#':
 						field.sign= '#';
-						field.wall = true; 
+						field.wall = true;
 						break;
 					case ' ':
 						field.sign= ' ';
-						field.wall = false;  
-						break; 
+						field.wall = false;
+						break;
 					case 'S':
 						field.sign= 'S';
-						field.wall = false; 
+						field.wall = false;
 						maze.startx = x;
-						maze.starty = y; 
-						break; 
+						maze.starty = y;
+						break;
 					case 'X':
 						field.sign= 'X';
-						field.wall = false; 
-						break; 
+						field.wall = false;
+						break;
 				}
 				ve.push_back(field);
 				x++;
@@ -56,6 +56,6 @@ Maze MazeFileHandler::getMazeFromFile(std::string fileName)
 		y++;
 	}
 
-	MazeScreenManager::show(cout, maze.maze);
+	MazeScreenManager::printToScreen(maze.maze);
   return maze;
 }

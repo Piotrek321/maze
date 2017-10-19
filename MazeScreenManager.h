@@ -11,12 +11,6 @@
 #endif
 class Maze;
 using namespace std;
-//struct Field;
-/*#ifdef _WIN32
-	int sleepTime= 1;
-#else
-	int sleepTime= 50000;
-#endif*/
 
 class MazeScreenManager
 {

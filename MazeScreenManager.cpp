@@ -1,5 +1,11 @@
 #include "MazeScreenManager.h"
 
+#ifdef _WIN32
+	int sleepTime= 1;
+#else
+  int sleepTime= 50000;
+#endif
+
 void MazeScreenManager::show(ostream& stream, const vector<vector<Field>> &maze)
 {
   clearScreen(0,0);
@@ -12,9 +18,9 @@ void MazeScreenManager::show(ostream& stream, const vector<vector<Field>> &maze)
     stream << "\n";
   }
 #ifdef _WIN32
-  Sleep(1);
+  Sleep(sleepTime);
 #else
-  usleep(50000);
+  usleep(sleepTime);
 #endif
 
 }

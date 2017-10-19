@@ -37,31 +37,19 @@ public:
   Maze(){};
 	int startx, starty;//, endx, endy;
 	vector <vector<Field>> maze;
-private: 
+private:
 	void makeMove( int y, int x);
-
-	void fillMaze();
-
+	void createEmptyMazeAndSetInitialPoint();
 	bool stuck();
-
 	vector  <function<void()>> lookAround();
-
 	int availableFields();
-
 	void chooseMove();
-
 	void clearStack(stack<Field> _stck);
-
 	void goBack();
-
 	bool isDeadEnd(int y, int x);
 
-
   static int nrOfMazes;
-
 	stack<Field> stck;
-
-
 	int startRow, endRow, myx, myy, height, width;
 
 };
@@ -87,7 +75,7 @@ vector<Field> Maze::getOnePath(int y, int x)
   if(maze[y+1][x].sign != '#')
 	{
 		fd.push_back(maze[y+1][x]);
-	}	
+	}
 
 	return fd;
 }*/
