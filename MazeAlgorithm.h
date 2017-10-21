@@ -22,19 +22,15 @@ public:
 	void prepareEmptyGraph();
 	void printGraph();
 	void collectCrossroads();
+  std::vector<std::vector<int>> transformCrossroadsIntoGraphOfDistances();
   ~MazeAlgorithm()
 	{
-		for(int i = 0; i <m_nrOfCrossroads; ++i)
-		{
-			delete graph[i];
-		}
-		delete graph;
 		crossroads.clear();
 	}
   int m_nrOfCrossroads;
   Maze mazeHandler;
 	stack<Field> stck;
-	FieldInGraph ** graph;
+  vector <vector<FieldInGraph>> graph;
 	vector<Field*> crossroads;
 	vector <vector<Field>> maze;
   int startRow,endRow;

@@ -21,7 +21,7 @@ public:
 class Graph
 {
   public:
-    Graph(int size): m_size(size+1), m_edgeValue(EDGE_VALUE){};
+    Graph(int size): m_size(size), m_edgeValue(EDGE_VALUE){};//było size+1
     void init();
     void printGraph();
     void addEdge(int vertex1, int vertex2,int distance, bool uniDirected=1);
@@ -82,7 +82,7 @@ void Graph::addEdgeToMatrix(int vertex1, int vertex2, int distance, bool uniDire
   if(adjacency_matrix[vertex1][vertex2] > distance || adjacency_matrix[vertex1][vertex2]==-1)
   {
     adjacency_matrix[vertex1][vertex2] = distance;
-    if(uniDirected) adjacency_matrix[vertex2][vertex1] = distance;  
+    if(uniDirected) adjacency_matrix[vertex2][vertex1] = distance;
   }
 }
 
@@ -113,14 +113,14 @@ void Graph::tranformAdjacencyMatrixIntoAdjacencyList()
   for(int index=1;index < adjacency_matrix.size(); index++)
   {
     for(int x=index+1;x < adjacency_matrix[index].size(); x++)
-    { 
+    {
       if(adjacency_matrix[index][x] != -1)
       {
         adjacency_list[index].push_back(make_pair(x,adjacency_matrix[index][x]));
         adjacency_list[x].push_back(make_pair(index,adjacency_matrix[index][x]));
       }
     }
-  }   
+  }
 }
 void Graph::printDistance(int startIndex)
 {
@@ -137,23 +137,23 @@ void Graph::printDistance(int startIndex)
   cout << "\n";
 }
 
-int main() 
+int main()
 {
   ios::sync_with_stdio(false);
   int testCases, nodes, edges, node1, node2, distance, index;
-  cin >>testCases; 
+  cin >>testCases;
   while(testCases--)
   {
-    cin >> nodes >>edges; 
+    cin >> nodes >>edges;
     Graph g(nodes);
     g.init();
     for(int i =0; i<edges; i++)
     {
-      cin >>node1 >>node2 >>distance; 
-      g.addEdgeToMatrix(node1, node2, distance);     
+      cin >>node1 >>node2 >>distance;
+      g.addEdgeToMatrix(node1, node2, distance);
     }
     g.tranformAdjacencyMatrixIntoAdjacencyList();
-    cin >>index; 
+    cin >>index;
     g.Dijkstra(index);
     g.printDistance(index);
   }

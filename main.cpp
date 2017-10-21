@@ -13,13 +13,13 @@ Maze x(15,15);
 
     while(a--)
     {
-				
+
         x.createMaze();
 				MazeAlgorithm mazeAlgor(x);
 				mazeAlgor.createCrossroads();
 				mazeAlgor.createGraph();
 		//	getchar();
-			
+
     }
 
     return 0;
